@@ -78,20 +78,14 @@ public class MegatronGraphics {
         v |= b;
         return v;
     }
-   
-    public static void main(String[] args) throws IOException {
-        if (args.length != 3 || !"mtg2png".equals(args[0]) && !"makemtg".equals(args[0])) {
-            System.err.println("Expected arguments: mtg2png infile.mtg outfile.png\n"+
-                               "                or: makemtg infile.whatever outfile.mtg");
-            System.exit(1);
-        }
-        if ("makemtg".equals(args[0])) {
-            BufferedImage img  = ImageIO.read(new File(args[1]));
-            MegatronGraphics.write(img, args[2]);
-        } else {
-            BufferedImage img = MegatronGraphics.read(args[1]);
-            ImageIO.write(img, "PNG", new File(args[2]));
-        }
+        public static void main(String[] args) throws IOException {
+
+        BufferedImage img = MegatronGraphics.read("resources/cartoon.mtg");
+        ImageIO.write(img, "PNG", new File("resources/cartoon.png"));
+
+//        BufferedImage img2 = ImageIO.read(new File("resources/cartoon.png"));
+//        MegatronGraphics.write(img2, "resources/cartoon2.mtg");
+
     }
 }
 
