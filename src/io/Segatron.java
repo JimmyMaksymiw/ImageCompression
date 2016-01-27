@@ -1,109 +1,72 @@
 package io;
 
-import java.awt.image.BufferedImage;
-import java.awt.image.Raster;
-import java.awt.image.WritableRaster;
-import java.io.EOFException;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import utils.ByteImage;
+import utils.ByteUtil;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Created by Kalle Bornemark on 2016-01-17.
+ * Segatron file format.
+ * Class that reads and writes .stg files. Uses a HEADER too identify that the file is correct.
+ * @author Jimmy Maksymiw & Kalle Bornemark
  */
 public class Segatron {
-    final static byte[] magic = "segatronROFLboll".getBytes(StandardCharsets.US_ASCII);
+    // Header to signify Segatron file format.
+    final static byte[] HEADER = "segaSADNeZ".getBytes(StandardCharsets.US_ASCII);
 
-    public final static class SegatronException extends IOException {}
-
-    public static void write(BufferedImage img, String fnam) throws IOException {
-        int width = img.getWidth();
-        int height = img.getHeight();
-        int[] pxl = new int[3];
-        Raster imgr = img.getRaster();
-        OutputStream out = new FileOutputStream(fnam);
-        out.write(magic);
-        write4bytes(width, out);
-        write4bytes(height, out);
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                imgr.getPixel(i, j, pxl);
-                out.write(pxl[0]);
-                out.write(pxl[1]);
-                out.write(pxl[2]);
-            }
-        }
-        out.close();
-    }
-
-    public static BufferedImage read(String fnam) throws IOException {
-        InputStream in = new FileInputStream(fnam);
-
-        // Check magic value.
-        for (int i = 0; i < magic.length; i++) {
-            if (in.read() != magic[i]) {
-                throw new SegatronException();
-            }
-        }
-        int width = read4bytes(in);
-        int height = read4bytes(in);
-        BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        byte[] pxlBytes = new byte[3];
-        int[] pxl = new int[3];
-        WritableRaster imgr = img.getRaster();
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                if (in.read(pxlBytes) != 3) {
-                    throw new EOFException();
-                }
-                pxl[0] = pxlBytes[0];
-                pxl[1] = pxlBytes[1];
-                pxl[2] = pxlBytes[2];
-                imgr.setPixel(i, j, pxl);
-            }
-        }
-        in.close();
-        return img;
+    public final static class InvalidSegatronException extends IOException {
     }
 
     /**
-     * Writes an int as 4 bytes, big endian.
+     * Writes image information to a file (.stg) with the provided values.
+     * @param bytes The array that contains the pixel information.
+     * @param width The width of the image.
+     * @param height The height of the image.
+     * @param filePath The filepath to write the file.
+     * @throws IOException
      */
-    private static void write4bytes(int v, OutputStream out) throws IOException {
-        out.write(v >>> 3 * 8);
-        out.write(v >>> 2 * 8 & 255);
-        out.write(v >>> 1 * 8 & 255);
-        out.write(v & 255);
+    public static void write(byte[] bytes, int width, int height, String filePath) throws IOException {
+        OutputStream outputStream = new FileOutputStream(filePath);
+
+        // Write header
+        outputStream.write(HEADER);
+
+        // Write width & height
+        ByteUtil.write4bytes(width, outputStream);
+        ByteUtil.write4bytes(height, outputStream);
+
+        // Write pixel data
+        outputStream.write(bytes);
+
+        // Close the stream
+        outputStream.close();
     }
 
     /**
-     * Reads an int as 4 bytes, big endian.
+     * Reads image information from a file (.stg).
+     * @param filePath The filepath to read the file (.stg) from.
+     * @return A ByteImage-object that contains the image information.
+     * @throws IOException
      */
-    private static int read4bytes(InputStream in) throws IOException {
-        int b, v;
-        b = in.read();
-        if (b < 0) {
-            throw new EOFException();
+    public static ByteImage read(String filePath) throws IOException {
+        InputStream inputStream = new FileInputStream(filePath);
+
+        // Read header
+        for (byte aHEADER : HEADER) if (inputStream.read() != aHEADER) throw new InvalidSegatronException();
+
+        // Read width & height
+        int width = ByteUtil.read4bytes(inputStream);
+        int height = ByteUtil.read4bytes(inputStream);
+
+        // Read pixel data
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        int nRead;
+        byte[] data = new byte[1024];
+        while ((nRead = inputStream.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, nRead);
         }
-        v = b << 3 * 8;
-        b = in.read();
-        if (b < 0) {
-            throw new EOFException();
-        }
-        v |= b << 2 * 8;
-        b = in.read();
-        if (b < 0) {
-            throw new EOFException();
-        }
-        v |= b << 1 * 8;
-        b = in.read();
-        if (b < 0) {
-            throw new EOFException();
-        }
-        v |= b;
-        return v;
+        buffer.flush();
+        inputStream.close();
+        return new ByteImage(width, height, buffer.toByteArray());
     }
 }
