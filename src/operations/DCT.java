@@ -192,7 +192,7 @@ public class DCT {
                         g = (1000 * lBlock[BLOCKSIZE * k + l] - 395 * uBlock[BLOCKSIZE * k + l] - 581 * vBlock[BLOCKSIZE * k + l]) / 1000;
                         b = (1000 * lBlock[BLOCKSIZE * k + l] + 2032 * uBlock[BLOCKSIZE * k + l]) / 1000;
 
-                        // If some color is out of range.
+                        // If some color are out of range.
                         if (r < 0) r = 0;
                         if (r > 255) r = 255;
                         if (g < 0) g = 0;

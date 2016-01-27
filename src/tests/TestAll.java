@@ -85,7 +85,8 @@ public class TestAll {
                 System.out.println("\nINFO:\n" +
                         "Original size: " + ((inputImage.getWidth() * inputImage.getHeight() * 3) / 1024) + "\n" +
                         "Compressed size: " + (compressedBytes.length / 1024) + "\n" +
-                        "Compress ratio: " + (double) compressedBytes.length / (double) (inputImage.getWidth() * inputImage.getHeight() * 3) + " %\n"
+                        "Compress ratio: " + ((double) compressedBytes.length / (double) (inputImage.getWidth() * inputImage.getHeight() * 3)) *
+                                100 + " %\n"
                 );
 
                 for (int i = 0; i < 30; i++) System.out.print("-");
