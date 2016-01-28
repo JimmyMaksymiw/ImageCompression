@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * Segatron file format.
- * Class that reads and writes .stg files. Uses a HEADER too identify that the file is correct.
+ * Class that reads and writes .stg files. Uses a HEADER to identify that the file is correct.
  * @author Jimmy Maksymiw & Kalle Bornemark
  */
 public class Segatron {
